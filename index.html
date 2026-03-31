@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="해외 스포츠 데이터 연동 정보 제공 플랫폼 구축 — 프로젝트 제안서" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['SUIT Variable', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              600: '#0284c7',
+              700: '#0369a1'
+            }
+          },
+          boxShadow: {
+            soft: '0 10px 30px -18px rgba(15, 23, 42, 0.35)'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root { color-scheme: light; font-size: 16px; }
+    body {
+      font-family: 'SUIT Variable', sans-serif;
+      font-size: 1rem;
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(14, 165, 233, 0.08), transparent 42%),
+        radial-gradient(circle at 88% 82%, rgba(2, 132, 199, 0.06), transparent 48%);
+    }
+    .doc-content h1, .doc-content h2, .doc-content h3, .doc-content h4 {
+      color: rgb(15 23 42); font-weight: 700; letter-spacing: -0.01em;
+      line-height: 1.3; margin-top: 1.6em; margin-bottom: 0.7em;
+    }
+    .doc-content h1 { font-size: 2rem; margin-top: 0.2em; }
+    .doc-content h2 { font-size: 1.4rem; }
+    .doc-content h3 { font-size: 1.15rem; }
+    .doc-content p, .doc-content li {
+      color: rgb(51 65 85); line-height: 1.8; font-size: 1rem;
+    }
+    .doc-content p, .doc-content ul, .doc-content ol,
+    .doc-content table, .doc-content pre, .doc-content blockquote {
+      margin-bottom: 1rem;
+    }
+    .doc-content ul, .doc-content ol { padding-left: 1.2rem; }
+    .doc-content ul { list-style: disc; }
+    .doc-content ol { list-style: decimal; }
+    .doc-content table {
+      width: 100%; border-collapse: collapse;
+      border: 1px solid rgb(226 232 240); border-radius: 0.75rem;
+      overflow: hidden; font-size: 1rem;
+    }
+    .doc-content th, .doc-content td {
+      border: 1px solid rgb(226 232 240); padding: 0.7rem 0.8rem;
+      text-align: left; vertical-align: top;
+    }
+    .doc-content th {
+      background: rgb(248 250 252); color: rgb(30 41 59); font-weight: 600;
+    }
+    .doc-content pre, .doc-content code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+    .doc-content pre {
+      background: rgb(15 23 42); color: rgb(226 232 240);
+      padding: 1rem; border-radius: 0.75rem; overflow-x: auto;
+      font-size: 1rem; line-height: 1.65;
+    }
+    .doc-content p code, .doc-content li code,
+    .doc-content td code, .doc-content th code {
+      background: rgb(241 245 249); color: rgb(15 23 42);
+      border: 1px solid rgb(226 232 240); border-radius: 0.4rem;
+      padding: 0.08rem 0.4rem; font-size: 1em;
+    }
+    .doc-content blockquote {
+      border-left: 3px solid rgb(14 165 233); padding-left: 0.85rem;
+      color: rgb(71 85 105); background: rgb(240 249 255);
+      border-radius: 0.5rem; padding-top: 0.55rem; padding-bottom: 0.55rem;
+    }
+    .text-xs { font-size: 1rem !important; }
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before {
+      content: ''; position: absolute; left: 0.6rem; top: 0.25rem; bottom: 0.25rem;
+      width: 2px; background: rgb(186 230 253);
+    }
+    .timeline-item { position: relative; margin-bottom: 1.75rem; }
+    .timeline-item::before {
+      content: ''; position: absolute; left: -1.65rem; top: 0.35rem;
+      width: 0.75rem; height: 0.75rem; border-radius: 50%;
+      background: rgb(2 132 199); border: 3px solid rgb(224 242 254);
+    }
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+    #sidebar-backdrop { display: none; }
+    #sidebar-backdrop.open { display: block; }
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-100%); transition: transform 0.2s ease; position: fixed; top: 0; left: 0; z-index: 40; height: 100vh; width: 80vw; max-width: 320px; }
+      #sidebar.open { transform: translateX(0); }
+    }
+  </style>
+  <title>해외 스포츠 데이터 연동 정보 제공 플랫폼 구축 — 프로젝트 제안서</title>
+</head>
+<body class="text-slate-800 font-sans antialiased">
+  <div class="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-10">
+
+    <!-- Header -->
+    <header class="mb-6 rounded-2xl border border-slate-200/70 bg-white/85 px-5 py-3 shadow-soft backdrop-blur">
+      <div class="flex flex-wrap items-center gap-3">
+        <button id="sidebar-toggle" class="lg:hidden inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-700 hover:border-sky-300 hover:text-sky-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          메뉴
+        </button>
+        <a href="#home" class="inline-flex items-center shrink-0 text-sm font-bold tracking-tight text-slate-800">
+          프로젝트 제안서
+        </a>
+        <div class="hidden sm:block ml-auto text-right">
+          <p class="text-sm font-semibold tracking-[0.04em] text-sky-700/90">해외 스포츠 데이터 연동 정보 제공 플랫폼 구축</p>
+          <p class="text-xs text-slate-400">프로젝트 제안서</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+
+      <!-- Sidebar -->
+      <div id="sidebar-backdrop" class="fixed inset-0 bg-black/30 z-30 lg:hidden" onclick="closeSidebar()"></div>
+      <aside id="sidebar" class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-soft backdrop-blur lg:sticky lg:top-6 lg:h-[calc(100vh-4rem)] lg:overflow-auto">
+        <nav id="nav" class="space-y-1">
+          <a href="#home" data-page="home" class="nav-link block rounded-xl border px-3 py-2 text-sm border-sky-200 bg-sky-50 font-medium text-sky-700">홈</a>
+          <div class="my-3 border-t border-slate-200"></div>
+          <p class="mb-2 mt-1 px-1 text-sm font-semibold tracking-[0.14em] text-slate-400">제안서</p>
+          <a href="#overview" data-page="overview" class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">프로젝트 소개</a>
+          <a href="#estimate" data-page="estimate" class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">견적서</a>
+          <a href="#manday" data-page="manday" class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">공수계산서</a>
+          <a href="#prd" data-page="prd" class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">PRD</a>
+          <div class="my-3 border-t border-slate-200"></div>
+          <p class="mb-2 mt-1 px-1 text-sm font-semibold tracking-[0.14em] text-slate-400">일정 & 경험</p>
+          <a href="#timeline" data-page="timeline" class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">일정 제안</a>
+          <a href="#portfolio" data-page="portfolio" class="nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">유사 프로젝트 경험</a>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="min-w-0">
+
+        <!-- PAGE: Home -->
+        <div id="page-home" class="page-section active space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-6 shadow-soft backdrop-blur md:p-8">
+            <p class="mb-2 text-xs font-semibold tracking-[0.2em] text-sky-700/80">프로젝트 제안서</p>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">해외 스포츠 데이터 연동 정보 제공 플랫폼 구축</h1>
+            <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">NBA 등 해외 스포츠 경기 데이터를 수집·가공하여 국내 사용자에게 직관적인 UI/UX로 정보를 제공하는 플랫폼을 구축합니다. 다수의 해외 사이트에 분산된 경기 현황, 선수 정보, 분석 데이터를 하나의 통합 플랫폼에서 가독성과 접근성을 극대화한 고품질 서비스로 제공합니다.</p>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="inline-flex rounded-full border border-sky-200 bg-sky-100 px-2.5 py-1 text-sm font-semibold tracking-[0.12em] text-sky-700">27,000,000원</span>
+              <span class="inline-flex rounded-full border border-sky-200 bg-sky-100 px-2.5 py-1 text-sm font-semibold tracking-[0.12em] text-sky-700">90일</span>
+              <span class="inline-flex rounded-full border border-amber-200 bg-amber-100 px-2.5 py-1 text-sm font-semibold tracking-[0.12em] text-amber-700">웹 / 데이터 분석·BI</span>
+              <a href="https://www.wishket.com/project/153808/" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-sm font-medium text-slate-500 transition hover:border-sky-300 hover:text-sky-700">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                원본 공고
+              </a>
+            </div>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <a href="#overview" class="group rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-sky-100 text-sky-700 border-sky-200">소개</div>
+              <h2 class="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-sky-700">프로젝트 소개</h2>
+              <p class="mt-2 text-sm leading-7 text-slate-600">프로젝트 분석, 핵심 요구사항 정리, 제안 포인트</p>
+            </a>
+            <a href="#estimate" class="group rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-sky-100 text-sky-700 border-sky-200">비용</div>
+              <h2 class="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-sky-700">견적서</h2>
+              <p class="mt-2 text-sm leading-7 text-slate-600">항목별 비용 산출 근거 및 상세 견적</p>
+            </a>
+            <a href="#manday" class="group rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-sky-100 text-sky-700 border-sky-200">공수</div>
+              <h2 class="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-sky-700">공수계산서</h2>
+              <p class="mt-2 text-sm leading-7 text-slate-600">기능별 개발 공수(man-day) 산출 내역</p>
+            </a>
+            <a href="#prd" class="group rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-amber-100 text-amber-700 border-amber-200">기획</div>
+              <h2 class="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-sky-700">PRD</h2>
+              <p class="mt-2 text-sm leading-7 text-slate-600">기능 요구사항 정의서, 사용자 스토리, 기술 제약</p>
+            </a>
+            <a href="#timeline" class="group rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-amber-100 text-amber-700 border-amber-200">일정</div>
+              <h2 class="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-sky-700">일정 제안</h2>
+              <p class="mt-2 text-sm leading-7 text-slate-600">단계별 마일스톤 및 산출물 일정표</p>
+            </a>
+            <a href="#portfolio" class="group rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-amber-100 text-amber-700 border-amber-200">경험</div>
+              <h2 class="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-sky-700">유사 프로젝트 경험</h2>
+              <p class="mt-2 text-sm leading-7 text-slate-600">유사 프로젝트 수행 경험 및 기술 스택</p>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">13+</p>
+              <p class="text-xs text-slate-500">완료 프로젝트</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">7년+</p>
+              <p class="text-xs text-slate-500">개발 경력</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">54 M/D</p>
+              <p class="text-xs text-slate-500">예상 공수</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">90일</p>
+              <p class="text-xs text-slate-500">제안 기간</p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-sky-200/70 bg-gradient-to-br from-sky-50 to-brand-50 p-6 text-center shadow-soft md:p-10">
+            <h2 class="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">함께 만들어 가겠습니다</h2>
+            <p class="mx-auto mt-3 max-w-lg text-sm leading-7 text-slate-600">각 메뉴를 클릭하시면 상세 내용을 확인하실 수 있습니다.</p>
+          </div>
+        </div>
+
+        <!-- PAGE: 프로젝트 소개 -->
+        <div id="page-overview" class="page-section space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h1>프로젝트 소개</h1>
+              <blockquote>해외 스포츠 경기 데이터를 수집·가공하여 국내 사용자에게 직관적인 UI/UX로 정보를 제공하는 플랫폼을 구축합니다.</blockquote>
+
+              <h2>프로젝트 개요</h2>
+              <table>
+                <tr><th>항목</th><th>내용</th></tr>
+                <tr><td>프로젝트명</td><td><a href="https://www.wishket.com/project/153808/" target="_blank" rel="noopener noreferrer" class="text-sky-700 underline decoration-sky-300 hover:decoration-sky-500">해외 스포츠 데이터 연동 정보 제공 플랫폼 구축</a></td></tr>
+                <tr><td>카테고리</td><td>웹 / 데이터 분석·BI / SaaS·솔루션</td></tr>
+                <tr><td>제안 금액</td><td>27,000,000원 (VAT 별도)</td></tr>
+                <tr><td>제안 기간</td><td>90일</td></tr>
+                <tr><td>핵심 기술</td><td>Next.js, NestJS, TypeScript, PostgreSQL, Puppeteer, TailwindCSS</td></tr>
+              </table>
+
+              <h2>핵심 요구사항 분석</h2>
+              <ul>
+                <li><strong>해외 스포츠 데이터 취합</strong> — 지정된 다수의 해외 스포츠 정보 사이트에서 경기 현황, 선수 정보(부상 등), 관련 기록 등 텍스트·수치 데이터 수집</li>
+                <li><strong>데이터 통합 및 가공</strong> — 수집 데이터를 표준화된 포맷으로 가공하여 DB 저장, 사용자에게 일관된 형태로 제공</li>
+                <li><strong>스포츠 정보 제공 UI</strong> — 종목별, 리그별, 팀별, 선수별 분류·탐색·조회 기능</li>
+                <li><strong>관리자 페이지</strong> — 데이터 소스(URL) 관리, 수집 현황 모니터링, 주요 데이터 관리 및 통계 확인</li>
+                <li><strong>반응형 웹</strong> — PC Web + Mobile Web 반응형 지원</li>
+                <li><strong>UI/UX 디자인</strong> — 세련되고 직관적인 디자인으로 가독성·접근성 극대화</li>
+              </ul>
+
+              <h2>제안 포인트</h2>
+              <h3>1. 데이터 수집·파이프라인 전문성</h3>
+              <p>다수의 외부 데이터 소스를 통합·가공하는 프로젝트를 다수 수행한 경험이 있습니다. Puppeteer/Playwright 기반 스크래핑 시스템과 스케줄링 파이프라인을 구축하여 안정적인 데이터 수집 환경을 제공합니다. 공식 API가 제공되는 경우 API 연동을 우선하고, 스크래핑은 API 미제공 소스에 한정하여 안정성을 확보합니다.</p>
+              <h3>2. 대시보드·데이터 시각화 역량</h3>
+              <p>50+ 페이지 규모의 관리자 대시보드, 통계·분석 화면, 데이터 테이블 구현 경험을 보유하고 있습니다. Recharts/Chart.js를 활용한 데이터 시각화와 TailwindCSS 기반의 반응형 UI를 통해 사용자 친화적인 정보 탐색 경험을 제공합니다.</p>
+              <h3>3. 기획부터 배포까지 원스톱 진행</h3>
+              <p>상세 기획(요구사항 정의, 기능 정의, 화면 설계), UI/UX 디자인(Figma), 프론트엔드·백엔드 개발, 서버·DB·인프라 구성까지 전 과정을 일관된 품질로 진행합니다. 기획 상태가 '간단히 정리한 상태'이므로, 요구사항 구체화부터 함께 진행하겠습니다.</p>
+
+              <h2>사용 기술 및 툴</h2>
+              <h3>개발 기술</h3>
+              <div class="flex flex-wrap gap-2 not-prose mb-4">
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">Next.js 14</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">React 18</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">TypeScript</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">TailwindCSS</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">NestJS</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">PostgreSQL</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">Prisma</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">Puppeteer</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">Bull Queue</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">Recharts</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">Docker</span>
+                <span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">AWS</span>
+              </div>
+              <h3>협업 및 커뮤니케이션</h3>
+              <div class="flex flex-wrap gap-2 not-prose">
+                <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">Figma</span>
+                <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">GitHub</span>
+                <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">Slack / 카카오톡</span>
+                <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">Zoom / Google Meet</span>
+                <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">Notion</span>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- PAGE: 견적서 -->
+        <div id="page-estimate" class="page-section space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h1>견적서</h1>
+              <blockquote>본 견적서는 프로젝트 요구사항 분석을 기반으로 산출되었습니다.</blockquote>
+
+              <h2>견적 요약</h2>
+              <table>
+                <tr><th>항목</th><th>내용</th></tr>
+                <tr><td>프로젝트명</td><td>해외 스포츠 데이터 연동 정보 제공 플랫폼 구축</td></tr>
+                <tr><td>제안 금액</td><td><strong>27,000,000원 (VAT 별도)</strong></td></tr>
+                <tr><td>제안 기간</td><td>90일</td></tr>
+                <tr><td>견적 유효기간</td><td>제안일로부터 30일</td></tr>
+              </table>
+
+              <h2>상세 견적 내역</h2>
+              <table>
+                <thead>
+                  <tr><th>구분</th><th>항목</th><th>수량</th><th>단가</th><th>금액</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>기획/설계</td><td>요구사항 분석, 화면 설계, DB/API 설계, 데이터 소스 조사</td><td>1식</td><td>-</td><td>4,500,000원</td></tr>
+                  <tr><td>UI/UX 디자인</td><td>사용자 화면 디자인, 관리자 페이지 디자인, 반응형 대응</td><td>1식</td><td>-</td><td>5,000,000원</td></tr>
+                  <tr><td>프론트엔드</td><td>사용자 정보 탐색 화면, 관리자 대시보드, 반응형 웹</td><td>1식</td><td>-</td><td>7,000,000원</td></tr>
+                  <tr><td>백엔드</td><td>데이터 수집 시스템, API 서버, 스케줄러, 데이터 파이프라인</td><td>1식</td><td>-</td><td>7,500,000원</td></tr>
+                  <tr><td>QA/배포</td><td>통합 테스트, 서버·DB·인프라 구성, 배포 및 모니터링</td><td>1식</td><td>-</td><td>3,000,000원</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr><th colspan="4">합계 (VAT 별도)</th><th>27,000,000원</th></tr>
+                </tfoot>
+              </table>
+
+              <h2>산정 근거</h2>
+              <p>유사 프로젝트(데이터 수집·통합 플랫폼, 관리자 대시보드) 수행 경험을 기반으로 기능별 공수를 산출하고, 단가를 적용하여 산정하였습니다. 데이터 스크래핑/API 연동 시스템 구축, 데이터 가공 파이프라인, 반응형 프론트엔드, 관리자 모니터링 대시보드를 모두 포함한 금액입니다.</p>
+
+              <h2>포함 사항</h2>
+              <ul>
+                <li>소스 코드 전체 이관</li>
+                <li>개발 문서 (API 명세서, DB 스키마, 배포 가이드)</li>
+                <li>화면 설계서</li>
+                <li>UI/UX 디자인 원본 파일 (Figma)</li>
+                <li>1개월 무상 하자 보수</li>
+                <li>배포 환경 세팅 (1회)</li>
+              </ul>
+
+              <h2>불포함 사항</h2>
+              <ul>
+                <li>서버 호스팅 비용 (AWS 등)</li>
+                <li>도메인 구매 비용</li>
+                <li>외부 유료 API 사용 비용 (스포츠 데이터 API 구독료 등)</li>
+                <li>하자 보수 기간 이후 유지보수</li>
+                <li>해외 스포츠 데이터 소스 라이선스 비용</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+
+        <!-- PAGE: 공수계산서 -->
+        <div id="page-manday" class="page-section space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h1>공수계산서</h1>
+              <blockquote>기능별 개발 공수(Man-Day)를 산출하여 일정과 비용의 근거를 제시합니다.</blockquote>
+
+              <h2>공수 요약</h2>
+              <table>
+                <tr><th>구분</th><th>공수 (M/D)</th><th>비율</th></tr>
+                <tr><td>기획/설계</td><td>9 M/D</td><td>17%</td></tr>
+                <tr><td>UI/UX 디자인</td><td>10 M/D</td><td>19%</td></tr>
+                <tr><td>프론트엔드 개발</td><td>14 M/D</td><td>26%</td></tr>
+                <tr><td>백엔드 개발</td><td>15 M/D</td><td>28%</td></tr>
+                <tr><td>QA/배포</td><td>6 M/D</td><td>11%</td></tr>
+                <tr><th>합계</th><th>54 M/D</th><th>100%</th></tr>
+              </table>
+
+              <h2>기능별 상세 공수</h2>
+              <table>
+                <thead>
+                  <tr><th>기능</th><th>세부 작업</th><th>담당</th><th>공수 (M/D)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td rowspan="4">기획/설계</td><td>요구사항 분석 및 정의</td><td>기획</td><td>2</td></tr>
+                  <tr><td>화면 설계 (와이어프레임)</td><td>기획</td><td>3</td></tr>
+                  <tr><td>DB 설계 및 API 설계</td><td>설계</td><td>2</td></tr>
+                  <tr><td>데이터 소스 조사 및 수집 전략 수립</td><td>설계</td><td>2</td></tr>
+                  <tr><td rowspan="3">UI/UX 디자인</td><td>사용자 화면 디자인 (메인, 종목/리그/팀/선수)</td><td>디자인</td><td>5</td></tr>
+                  <tr><td>관리자 페이지 디자인</td><td>디자인</td><td>3</td></tr>
+                  <tr><td>반응형 디자인 (PC + Mobile)</td><td>디자인</td><td>2</td></tr>
+                  <tr><td rowspan="7">프론트엔드 개발</td><td>메인 페이지 및 내비게이션</td><td>FE</td><td>1.5</td></tr>
+                  <tr><td>경기 현황 목록/상세 화면</td><td>FE</td><td>2</td></tr>
+                  <tr><td>선수 정보 목록/상세 화면</td><td>FE</td><td>2</td></tr>
+                  <tr><td>팀/리그/종목 브라우징 화면</td><td>FE</td><td>2.5</td></tr>
+                  <tr><td>검색 및 필터링</td><td>FE</td><td>1.5</td></tr>
+                  <tr><td>반응형 대응 (PC/Mobile)</td><td>FE</td><td>1.5</td></tr>
+                  <tr><td>관리자 대시보드 프론트엔드</td><td>FE</td><td>3</td></tr>
+                  <tr><td rowspan="6">백엔드 개발</td><td>데이터 스크래핑/API 연동 시스템</td><td>BE</td><td>4</td></tr>
+                  <tr><td>데이터 정규화/가공 파이프라인</td><td>BE</td><td>3</td></tr>
+                  <tr><td>REST API (CRUD, 검색, 필터)</td><td>BE</td><td>3</td></tr>
+                  <tr><td>관리자 API</td><td>BE</td><td>2</td></tr>
+                  <tr><td>스케줄러/배치 처리 (Bull Queue)</td><td>BE</td><td>2</td></tr>
+                  <tr><td>인증/권한 관리</td><td>BE</td><td>1</td></tr>
+                  <tr><td rowspan="4">QA/배포</td><td>통합 테스트</td><td>QA</td><td>2</td></tr>
+                  <tr><td>서버/DB/인프라 구성</td><td>인프라</td><td>2</td></tr>
+                  <tr><td>배포 및 모니터링 설정</td><td>인프라</td><td>1</td></tr>
+                  <tr><td>버그 수정 및 안정화</td><td>QA</td><td>1</td></tr>
+                </tbody>
+              </table>
+
+              <h2>산정 기준</h2>
+              <ul>
+                <li>1 M/D = 8시간 기준 (1인 1일 작업량)</li>
+                <li>주 5일 근무 기준</li>
+                <li>버퍼 10~15% 포함</li>
+                <li>유사 프로젝트 수행 경험 기반 효율적 개발</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+
+        <!-- PAGE: PRD -->
+        <div id="page-prd" class="page-section space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h1>PRD (Product Requirements Document)</h1>
+              <blockquote>프로젝트 요구사항을 정의하고 기능 범위를 명확히 합니다.</blockquote>
+
+              <h2>1. 프로젝트 배경 및 목적</h2>
+              <p>NBA 등 해외에서 진행되는 다양한 스포츠 경기의 관련 정보가 여러 해외 사이트에 분산되어 있어, 국내 사용자가 이를 통합적으로 확인하기 어려운 상황입니다. 본 프로젝트는 이러한 분산된 경기 현황, 선수 정보, 분석 데이터를 취합하고, 사용자 친화적인 UI/UX 디자인을 적용하여 정보의 가독성과 접근성을 극대화한 정보 플랫폼을 구축하는 것을 목표로 합니다.</p>
+
+              <h2>2. 사용자 정의</h2>
+              <table>
+                <thead>
+                  <tr><th>사용자 유형</th><th>설명</th><th>주요 기능</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>일반 사용자</td><td>해외 스포츠 경기 정보를 탐색하는 국내 사용자</td><td>종목/리그/팀/선수별 정보 조회, 경기 현황 확인, 검색·필터링</td></tr>
+                  <tr><td>관리자</td><td>플랫폼 운영 및 데이터 관리 담당자</td><td>데이터 소스(URL) 관리, 수집 현황 모니터링, 데이터 관리, 통계 확인</td></tr>
+                </tbody>
+              </table>
+
+              <h2>3. 기능 요구사항</h2>
+
+              <h3>3.1 해외 스포츠 데이터 취합</h3>
+              <ul>
+                <li><strong>[필수]</strong> 지정된 다수의 해외 스포츠 정보 사이트에서 데이터 수집</li>
+                <li><strong>[필수]</strong> 경기 현황 (일정, 결과, 스코어) 수집</li>
+                <li><strong>[필수]</strong> 선수 정보 (프로필, 부상 현황, 통계) 수집</li>
+                <li><strong>[필수]</strong> 관련 기록 및 분석 데이터 수집</li>
+                <li><strong>[필수]</strong> 공식 API 우선 연동, 미제공 소스는 스크래핑</li>
+                <li><strong>[선택]</strong> 수집 주기 설정 (실시간/주기적)</li>
+              </ul>
+
+              <h3>3.2 데이터 통합 및 가공</h3>
+              <ul>
+                <li><strong>[필수]</strong> 수집 데이터 표준화 포맷 정의 및 가공</li>
+                <li><strong>[필수]</strong> 가공된 데이터 DB 저장</li>
+                <li><strong>[필수]</strong> 사용자에게 일관된 형태로 표시</li>
+                <li><strong>[선택]</strong> 데이터 품질 검증 (중복 제거, 누락 감지)</li>
+              </ul>
+
+              <h3>3.3 스포츠 정보 제공 UI</h3>
+              <ul>
+                <li><strong>[필수]</strong> 종목별 분류 및 탐색</li>
+                <li><strong>[필수]</strong> 리그별 분류 및 탐색</li>
+                <li><strong>[필수]</strong> 팀별 분류 및 상세 정보</li>
+                <li><strong>[필수]</strong> 선수별 분류 및 상세 정보</li>
+                <li><strong>[필수]</strong> 경기 현황 목록 및 상세</li>
+                <li><strong>[필수]</strong> 검색 및 필터링 기능</li>
+                <li><strong>[필수]</strong> PC/Mobile 반응형 지원</li>
+              </ul>
+
+              <h3>3.4 관리자 페이지</h3>
+              <ul>
+                <li><strong>[필수]</strong> 데이터 소스(URL) CRUD 관리</li>
+                <li><strong>[필수]</strong> 수집 현황 모니터링 (성공/실패/마지막 수집 시간)</li>
+                <li><strong>[필수]</strong> 주요 데이터 관리 (종목, 리그, 팀, 선수 CRUD)</li>
+                <li><strong>[필수]</strong> 통계 확인 (수집 건수, 사용자 접근 통계)</li>
+                <li><strong>[선택]</strong> 수집 스케줄 관리</li>
+              </ul>
+
+              <h2>4. 비기능 요구사항</h2>
+              <table>
+                <thead>
+                  <tr><th>항목</th><th>요구사항</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>성능</td><td>API 응답 시간 300ms 이내, 페이지 로딩 2초 이내</td></tr>
+                  <tr><td>보안</td><td>HTTPS, JWT 인증, SQL Injection/XSS 방어</td></tr>
+                  <tr><td>가용성</td><td>99.5% 이상 업타임</td></tr>
+                  <tr><td>확장성</td><td>스포츠 종목·리그 추가 시 코드 변경 최소화</td></tr>
+                  <tr><td>반응형</td><td>PC Web (1024px+), Mobile Web (320px~1023px) 지원</td></tr>
+                  <tr><td>SEO</td><td>Next.js SSR/SSG 활용한 검색엔진 최적화</td></tr>
+                </tbody>
+              </table>
+
+              <h2>5. 기술 제약사항</h2>
+              <ul>
+                <li>해외 스포츠 데이터 소스의 접근성 및 이용약관에 따라 수집 방식이 달라질 수 있음</li>
+                <li>스크래핑 대상 사이트의 구조 변경 시 파서 업데이트 필요</li>
+                <li>실시간 데이터의 경우 소스 사이트의 업데이트 주기에 의존</li>
+                <li>해외 사이트 접근 시 네트워크 레이턴시 고려 필요</li>
+              </ul>
+
+              <h2>6. 범위 외 사항 (Out of Scope)</h2>
+              <ul>
+                <li>네이티브 모바일 앱 (iOS/Android) 개발</li>
+                <li>실시간 경기 중계 기능</li>
+                <li>사용자 간 커뮤니티/댓글 기능 (1차 범위 외)</li>
+                <li>결제/구독 시스템</li>
+                <li>다국어 지원 (1차는 한국어 전용)</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+
+        <!-- PAGE: 일정 제안 -->
+        <div id="page-timeline" class="page-section space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h1>일정 제안</h1>
+              <blockquote>총 90일 기준 단계별 마일스톤 및 산출물을 제안합니다.</blockquote>
+
+              <h2>전체 일정 요약</h2>
+              <table>
+                <thead>
+                  <tr><th>단계</th><th>기간</th><th>주요 산출물</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Phase 1: 기획/설계 + UI/UX 디자인</td><td>Day 1–22 (22일)</td><td>요구사항 정의서, 화면 설계서, Figma 디자인, DB/API 설계서</td></tr>
+                  <tr><td>Phase 2: 핵심 개발 (FE + BE + 데이터 수집)</td><td>Day 23–72 (50일)</td><td>프론트엔드 화면, 백엔드 API, 데이터 수집 시스템, 관리자 페이지</td></tr>
+                  <tr><td>Phase 3: QA + 배포 + 안정화</td><td>Day 73–90 (18일)</td><td>테스트 결과, 배포 완료, 운영 가이드</td></tr>
+                </tbody>
+              </table>
+            </article>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <h2 class="mb-4 text-sm font-semibold tracking-[0.14em] text-slate-500">상세 타임라인</h2>
+            <div class="timeline">
+              <div class="timeline-item">
+                <p class="text-sm font-semibold tracking-[0.14em] text-sky-700">PHASE 1</p>
+                <h4 class="text-base font-semibold text-slate-900">기획/설계 + UI/UX 디자인</h4>
+                <p class="mb-1 text-xs font-semibold text-amber-600">Day 1–22 (22일)</p>
+                <p class="text-sm leading-7 text-slate-600">요구사항 분석·정의, 화면 설계(와이어프레임), DB/API 설계, 데이터 소스 조사 및 수집 전략 수립, Figma UI/UX 디자인(사용자 화면 + 관리자 + 반응형)</p>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-500">
+                  <li>산출물: 요구사항 정의서, 화면 설계서, Figma 디자인 원본, ERD, API 명세서</li>
+                  <li>검수: 클라이언트 리뷰 및 승인 후 개발 착수</li>
+                </ul>
+              </div>
+              <div class="timeline-item">
+                <p class="text-sm font-semibold tracking-[0.14em] text-sky-700">PHASE 2-1</p>
+                <h4 class="text-base font-semibold text-slate-900">데이터 수집 시스템 구축</h4>
+                <p class="mb-1 text-xs font-semibold text-amber-600">Day 23–42 (20일)</p>
+                <p class="text-sm leading-7 text-slate-600">해외 스포츠 데이터 스크래핑/API 연동 시스템, 데이터 정규화·가공 파이프라인, 스케줄러/배치 처리, DB 스키마 구현</p>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-500">
+                  <li>산출물: 데이터 수집 시스템, 가공 파이프라인, 스케줄러</li>
+                </ul>
+              </div>
+              <div class="timeline-item">
+                <p class="text-sm font-semibold tracking-[0.14em] text-sky-700">PHASE 2-2</p>
+                <h4 class="text-base font-semibold text-slate-900">사용자 화면 + 백엔드 API 개발</h4>
+                <p class="mb-1 text-xs font-semibold text-amber-600">Day 35–62 (28일)</p>
+                <p class="text-sm leading-7 text-slate-600">메인 페이지, 종목/리그/팀/선수 목록·상세 화면, 검색·필터링, REST API(CRUD, 검색), 인증/권한 관리, 반응형 대응</p>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-500">
+                  <li>산출물: 사용자 프론트엔드, 백엔드 API 서버</li>
+                </ul>
+              </div>
+              <div class="timeline-item">
+                <p class="text-sm font-semibold tracking-[0.14em] text-sky-700">PHASE 2-3</p>
+                <h4 class="text-base font-semibold text-slate-900">관리자 페이지 개발</h4>
+                <p class="mb-1 text-xs font-semibold text-amber-600">Day 58–72 (15일)</p>
+                <p class="text-sm leading-7 text-slate-600">데이터 소스(URL) 관리, 수집 현황 모니터링 대시보드, 주요 데이터 CRUD 관리, 통계 화면</p>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-500">
+                  <li>산출물: 관리자 대시보드, 모니터링 화면</li>
+                </ul>
+              </div>
+              <div class="timeline-item">
+                <p class="text-sm font-semibold tracking-[0.14em] text-sky-700">PHASE 3</p>
+                <h4 class="text-base font-semibold text-slate-900">QA + 배포 + 안정화</h4>
+                <p class="mb-1 text-xs font-semibold text-amber-600">Day 73–90 (18일)</p>
+                <p class="text-sm leading-7 text-slate-600">통합 테스트, 크로스 브라우저/반응형 테스트, 서버·DB·인프라 구성, 배포, 모니터링 설정, 버그 수정 및 안정화</p>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-500">
+                  <li>산출물: 테스트 결과 보고서, 배포 완료, 운영 가이드</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h2>마일스톤 체크포인트</h2>
+              <table>
+                <thead>
+                  <tr><th>마일스톤</th><th>시점</th><th>검수 기준</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>M1: 설계 완료</td><td>Day 22</td><td>요구사항 정의서, 화면 설계서, Figma 디자인 승인</td></tr>
+                  <tr><td>M2: 데이터 수집 시스템 완료</td><td>Day 42</td><td>스크래핑/API 연동 동작 확인, 수집 데이터 DB 저장 확인</td></tr>
+                  <tr><td>M3: 사용자 화면 완료</td><td>Day 62</td><td>주요 화면 동작 확인, API 연동 확인</td></tr>
+                  <tr><td>M4: 관리자 페이지 완료</td><td>Day 72</td><td>관리자 기능 전체 동작 확인</td></tr>
+                  <tr><td>M5: 최종 배포</td><td>Day 90</td><td>전체 기능 테스트 통과, 운영 환경 배포 완료</td></tr>
+                </tbody>
+              </table>
+
+              <h2>커뮤니케이션 계획</h2>
+              <table>
+                <tr><th>항목</th><th>방식</th><th>주기</th></tr>
+                <tr><td>일일 진행 공유</td><td>Slack / 카카오톡</td><td>매일</td></tr>
+                <tr><td>주간 미팅</td><td>Zoom / Google Meet</td><td>주 1회</td></tr>
+                <tr><td>마일스톤 리뷰</td><td>화면 공유 + 문서</td><td>단계 완료 시</td></tr>
+                <tr><td>이슈 트래킹</td><td>GitHub Issues</td><td>상시</td></tr>
+              </table>
+            </article>
+          </div>
+        </div>
+
+        <!-- PAGE: 포트폴리오 -->
+        <div id="page-portfolio" class="page-section space-y-6">
+          <div class="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-soft backdrop-blur md:p-8">
+            <article class="doc-content">
+              <h1>유사 프로젝트 경험</h1>
+              <blockquote>본 프로젝트와 유사한 기능/기술 스택을 활용한 수행 경험을 소개합니다.</blockquote>
+            </article>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">13+</p>
+              <p class="text-xs text-slate-500">완료 프로젝트</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">7년+</p>
+              <p class="text-xs text-slate-500">개발 경력</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">54 M/D</p>
+              <p class="text-xs text-slate-500">예상 공수</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-4 text-center shadow-soft backdrop-blur">
+              <p class="text-2xl font-bold text-sky-700">90일</p>
+              <p class="text-xs text-slate-500">제안 기간</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Portfolio 1: Series-B -->
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft backdrop-blur md:p-8">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-sky-100 text-sky-700 border-sky-200">B2B SaaS / 핀테크</div>
+              <h3 class="text-lg font-semibold tracking-tight text-slate-900">투자조합 관리 플랫폼</h3>
+              <p class="mt-1 text-xs text-slate-400">B2B SaaS · 2023.11~2024.12 (14개월)</p>
+              <div class="mt-3 doc-content">
+                <h4>프로젝트 개요</h4>
+                <p>VC(벤처캐피탈) 펀드 라이프사이클 관리, 전자결재, 규제 보고를 통합한 올인원 SaaS 플랫폼. GP/LP/스타트업 3종 사용자 포탈, 50+ 페이지 규모의 대시보드.</p>
+                <h4>핵심 기능</h4>
+                <ul>
+                  <li>50+ 페이지 대시보드 및 데이터 관리 화면</li>
+                  <li>200-300+ API 엔드포인트, 80+ 데이터 엔티티</li>
+                  <li>AI 보고서 자동 생성 (외부 API 연동)</li>
+                  <li>데이터 통계·분석 화면</li>
+                </ul>
+                <h4>본 프로젝트와의 유사점</h4>
+                <p>대규모 데이터 대시보드, 통계·분석 화면, 다수의 데이터 엔티티 관리, 관리자 포탈 구현 경험이 본 프로젝트의 스포츠 정보 제공 UI 및 관리자 대시보드 구현에 직접 적용 가능합니다.</p>
+                <h4>기술 스택</h4>
+                <div class="flex flex-wrap gap-1.5 not-prose">
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Next.js 13</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">NestJS 10</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">TypeScript</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">MySQL</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">AWS</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Portfolio 2: EZ-Approve -->
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft backdrop-blur md:p-8">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-sky-100 text-sky-700 border-sky-200">B2B SaaS</div>
+              <h3 class="text-lg font-semibold tracking-tight text-slate-900">전자결재 · 업무 관리 플랫폼</h3>
+              <p class="mt-1 text-xs text-slate-400">B2B SaaS · 2026.01~2026.03 (9주)</p>
+              <div class="mt-3 doc-content">
+                <h4>프로젝트 개요</h4>
+                <p>한국 기업의 전자결재·문서관리를 통합하는 B2B SaaS 플랫폼. 120-150 API 엔드포인트, 34 엔티티, 7종 역할 기반 권한 관리.</p>
+                <h4>핵심 기능</h4>
+                <ul>
+                  <li>복잡한 관리자 대시보드 (50+ 페이지)</li>
+                  <li>120-150 API 엔드포인트</li>
+                  <li>7종 사용자 역할 및 6계층 보안</li>
+                  <li>외부 서비스 12개 연동</li>
+                </ul>
+                <h4>본 프로젝트와의 유사점</h4>
+                <p>대규모 관리자 대시보드 구현, 다수의 외부 서비스 연동 경험, SaaS 구조 설계 노하우가 본 프로젝트의 관리자 페이지 및 외부 데이터 소스 관리 시스템 구현에 활용됩니다.</p>
+                <h4>기술 스택</h4>
+                <div class="flex flex-wrap gap-1.5 not-prose">
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Next.js 13</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">NestJS 10</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">TypeScript</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">MUI v5</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">MySQL</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Docker</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Portfolio 3: Life3 -->
+            <div class="rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft backdrop-blur md:p-8">
+              <div class="mb-3 inline-flex rounded-full border px-2.5 py-1 text-sm font-semibold tracking-[0.12em] bg-sky-100 text-sky-700 border-sky-200">웹 플랫폼 / 데이터 통합</div>
+              <h3 class="text-lg font-semibold tracking-tight text-slate-900">Web3 dApp 마켓플레이스</h3>
+              <p class="mt-1 text-xs text-slate-400">B2C/B2B2C 플랫폼 · 2023.12~2024.07 (8개월)</p>
+              <div class="mt-3 doc-content">
+                <h4>프로젝트 개요</h4>
+                <p>NFT 마켓플레이스, 토큰 스왑, 게이미피케이션 리워드를 하나의 플랫폼에 통합한 웹 서비스. 4개 마이크로서비스, 98 데이터 모델, 60+ API 엔드포인트.</p>
+                <h4>핵심 기능</h4>
+                <ul>
+                  <li>4개 마이크로서비스 아키텍처</li>
+                  <li>다수의 외부 데이터 소스 통합 및 가공</li>
+                  <li>이벤트 드리븐 데이터 파이프라인 (Kafka)</li>
+                  <li>종합 어드민 패널 (25+ 페이지)</li>
+                </ul>
+                <h4>본 프로젝트와의 유사점</h4>
+                <p>다수의 외부 데이터 소스를 통합하고 가공하는 파이프라인 구축 경험, 마이크로서비스 기반 확장 가능한 아키텍처 설계가 본 프로젝트의 데이터 수집·통합 시스템 구현에 직접 적용됩니다.</p>
+                <h4>기술 스택</h4>
+                <div class="flex flex-wrap gap-1.5 not-prose">
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">React 18</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Next.js 13</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Node.js</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Express</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">PostgreSQL</span>
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm text-slate-500">Kafka</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-sky-200/70 bg-gradient-to-br from-sky-50 to-brand-50 p-6 text-center shadow-soft md:p-10">
+            <h2 class="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">함께 만들어 가겠습니다</h2>
+            <p class="mx-auto mt-3 max-w-lg text-sm leading-7 text-slate-600">프로젝트에 대해 더 자세한 논의를 원하시면 미팅을 신청해 주세요.</p>
+          </div>
+        </div>
+
+        <!-- Bottom Page Navigation -->
+        <div id="page-nav" class="mt-6 flex items-center justify-between gap-4" style="display:none;">
+          <a id="nav-prev" href="#home"
+             class="group flex items-center gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-5 py-3 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white">
+            <svg class="w-5 h-5 text-slate-400 transition group-hover:text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <span>
+              <span class="block text-xs text-slate-400">이전</span>
+              <span id="nav-prev-label" class="block text-sm font-semibold text-slate-700 group-hover:text-sky-700">홈</span>
+            </span>
+          </a>
+          <a id="nav-next" href="#overview"
+             class="group flex items-center gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-5 py-3 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white text-right ml-auto">
+            <span>
+              <span class="block text-xs text-slate-400">다음</span>
+              <span id="nav-next-label" class="block text-sm font-semibold text-slate-700 group-hover:text-sky-700">프로젝트 소개</span>
+            </span>
+            <svg class="w-5 h-5 text-slate-400 transition group-hover:text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+
+      </main>
+    </div>
+
+    <footer class="mt-10 border-t border-slate-200 pt-6 text-xs text-slate-500">
+      &copy; 2026 &middot; 본 제안서는 해외 스포츠 데이터 연동 정보 제공 플랫폼 구축 프로젝트를 위해 작성되었습니다.
+    </footer>
+  </div>
+
+  <!-- SPA Router -->
+  <script>
+    const pages = ['home', 'overview', 'estimate', 'manday', 'prd', 'timeline', 'portfolio'];
+    const pageLabels = {
+      home: '홈', overview: '프로젝트 소개', estimate: '견적서',
+      manday: '공수계산서', prd: 'PRD', timeline: '일정 제안', portfolio: '유사 프로젝트 경험'
+    };
+
+    function navigate(pageId) {
+      if (!pages.includes(pageId)) pageId = 'home';
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.dataset.page === pageId) {
+          link.className = 'nav-link block rounded-xl border px-3 py-2 text-sm border-sky-200 bg-sky-50 font-medium text-sky-700';
+        } else {
+          link.className = 'nav-link block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900';
+        }
+      });
+      updatePageNav(pageId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      closeSidebar();
+    }
+
+    function updatePageNav(pageId) {
+      const nav = document.getElementById('page-nav');
+      const idx = pages.indexOf(pageId);
+      const prevBtn = document.getElementById('nav-prev');
+      const nextBtn = document.getElementById('nav-next');
+      const prevLabel = document.getElementById('nav-prev-label');
+      const nextLabel = document.getElementById('nav-next-label');
+      nav.style.display = (pageId === 'home') ? 'none' : 'flex';
+      if (idx > 0) {
+        prevBtn.href = '#' + pages[idx - 1];
+        prevLabel.textContent = pageLabels[pages[idx - 1]];
+        prevBtn.style.visibility = 'visible';
+      } else {
+        prevBtn.style.visibility = 'hidden';
+      }
+      if (idx < pages.length - 1) {
+        nextBtn.href = '#' + pages[idx + 1];
+        nextLabel.textContent = pageLabels[pages[idx + 1]];
+        nextBtn.style.visibility = 'visible';
+      } else {
+        nextBtn.style.visibility = 'hidden';
+      }
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-backdrop').classList.remove('open');
+    }
+
+    function handleHash() {
+      const hash = (location.hash || '#home').replace('#', '');
+      navigate(hash);
+    }
+    window.addEventListener('hashchange', handleHash);
+    window.addEventListener('DOMContentLoaded', handleHash);
+
+    document.getElementById('sidebar-toggle').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-backdrop').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>
